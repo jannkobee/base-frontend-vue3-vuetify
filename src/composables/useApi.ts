@@ -6,11 +6,19 @@ import { Data } from "@/types/types";
 export const useApi = <T>(endpoint: string) => {
   const items = ref<T[]>([]);
   const loading = ref(false);
+  const loadingActions = ref(false);
   const item = ref();
   const options = ref([]);
   const { downloadFile } = useUpload();
 
-  const pagination = ref<Data>({
+  const pagination = ref<
+    Data & {
+      sortBy?: { key: string; order: string }[];
+      page?: number;
+      itemsPerPage?: number;
+      search?: string;
+    }
+  >({
     current_page: 0,
     from: 0,
     last_page: 0,
@@ -30,36 +38,104 @@ export const useApi = <T>(endpoint: string) => {
 
   async function index(payload?: any) {
     loading.value = true;
-    const res = await axios.get(endpoint, { params: { ...payload } });
-    items.value = res.data.data.data;
-    assignPagination(res.data.data);
-    loading.value = false;
-    return res;
+
+    try {
+      pagination.value = { ...pagination.value, ...payload };
+
+      const sort = pagination.value.sortBy?.[0] ?? { key: "", order: "" };
+
+      const params = {
+        page: pagination.value.page,
+        limit: pagination.value.itemsPerPage,
+        sort_by_column: sort.key,
+        sort_by: sort.order,
+        ...payload,
+      };
+
+      delete params.sortBy;
+      delete params.itemsPerPage;
+
+      if (!sort.key && !sort.order) {
+        delete params.sort_by_column;
+        delete params.sort_by;
+      }
+
+      const res = await axios.get(endpoint, { params });
+
+      items.value = res.data.data.data;
+
+      assignPagination(res.data.data);
+
+      return res;
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
   }
 
   async function store(payload: any) {
-    const res = await axios.post(endpoint, payload);
-    return res;
+    loadingActions.value = true;
+
+    try {
+      const res = await axios.post(endpoint, payload);
+
+      return res;
+    } catch (error) {
+      throw error;
+    } finally {
+      await index();
+
+      loadingActions.value = false;
+    }
   }
 
   async function show(id: any) {
     loading.value = true;
-    const res = await axios.get(`${endpoint}/${id}`);
-    items.value = res.data.data;
-    loading.value = false;
-    return res.data.data;
+
+    try {
+      const res = await axios.get(`${endpoint}/${id}`);
+
+      items.value = res.data.data;
+
+      return res.data.data;
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
   }
 
   async function update(id: any, payload: any) {
-    const res = await axios.put(`${endpoint}/${id}`, payload);
-    index();
-    return res;
+    loadingActions.value = true;
+
+    try {
+      const res = await axios.put(`${endpoint}/${id}`, payload);
+
+      return res;
+    } catch (error) {
+      throw error;
+    } finally {
+      await index();
+
+      loadingActions.value = false;
+    }
   }
 
   async function destroy(id: number) {
-    const res = await axios.delete(`${endpoint}/${id}`);
-    index();
-    return res;
+    loadingActions.value = true;
+
+    try {
+      const res = await axios.delete(`${endpoint}/${id}`);
+
+      return res;
+    } catch (error) {
+      throw error;
+    } finally {
+      await index();
+
+      loadingActions.value = false;
+    }
   }
 
   async function download(payload: any) {
@@ -67,27 +143,30 @@ export const useApi = <T>(endpoint: string) => {
       params: { ...payload },
       responseType: "arraybuffer",
     });
+
     downloadFile(res.data, payload.filename);
   }
 
   async function getOptions() {
     const res = await axios.get(`${endpoint}/options`);
+
     return (options.value = res.data.data);
   }
 
   return {
-    index,
+    endpoint,
     item,
     items,
     loading,
+    loadingActions,
+    options,
     pagination,
+    index,
     store,
     show,
     update,
     destroy,
-    options,
-    getOptions,
     download,
-    endpoint,
+    getOptions,
   };
 };

@@ -1,21 +1,15 @@
 import axios from "axios";
-import notification from "@/components/Notification.vue";
+import { useNotification } from "@/composables/useNotification";
 import router from "@/router";
 
+const { showNotification } = useNotification();
+
 const successNotification = (title: string, description: string) => {
-  notification.show({
-    title: title,
-    description: description,
-    color: "green",
-  });
+  showNotification(title, description, "success");
 };
 
 const errorNotification = (title: string, description: string) => {
-  notification.show({
-    title: title,
-    description: description,
-    color: "red",
-  });
+  showNotification(title, description, "error");
 };
 
 const api = "http://localhost:8000/backend/api/v1";
@@ -28,75 +22,62 @@ axios.defaults.withXSRFToken = true;
 
 const axiosRequest = axios.create({
   baseURL: api,
-  // withCredentials: true,
-  // headers: {
-  //   Authorization: `Bearer ${window.localStorage.getItem("APP_TOKEN")}`,
-  //   Accept: "application/json",
-  // },
+  withCredentials: true,
+  headers: {
+    Authorization: `Bearer ${window.localStorage.getItem("APP_TOKEN")}`,
+    Accept: "application/json",
+  },
 });
 
 axiosRequest.interceptors.response.use(
   (res) => {
-    if (res.status == 201) {
-      successNotification("Success", res.data.message);
-    } else if (
-      res.status == 200 &&
-      res.request.responseURL.endsWith("/logout")
-    ) {
-      successNotification("Success", res.data.message);
-    } else if (res.status == 200 && res.config.method == "delete") {
-      notification.show({
-        title: "Success",
-        description: res.data.message,
-        color: "green",
-      });
-    } else if (res.status == 200 && res.data.message == "Email Sent") {
-      successNotification("Success", res.data.message);
+    const { status, data, request, config } = res;
+
+    const isLogout = request.responseURL.endsWith("/logout");
+    const isDelete = config.method === "delete";
+    const isEmailSent = data.message === "Email Sent";
+
+    if (status === 201 || (status === 200 && (isLogout || isDelete || isEmailSent)) || status === 202) {
+      successNotification("Success", data.message);
     }
+
     return res;
   },
   (error) => {
     if (!error.response) {
-      router.push("/network-error");
-    }
+      errorNotification(
+        "Network Error",
+        "Cannot reach the server. Please check your internet connection.",
+      );
+      router.push({ name: "network-error", params: { type: "1" } });
 
-    if (error.response.status == 422) {
-      if (error.response.data.errors) {
-        let temp!: any[];
-        const errors = Object.values(error.response.data.errors);
-        errors.map(function (value: any, key) {
-          temp = value[0];
-        });
-
-        notification.show({
-          title: "Error",
-          description: temp,
-          color: "green",
-        });
-      } else {
-        notification.show({
-          title: error.response.data.message,
-          description: error.response.data.data,
-          color: "green",
-        });
-      }
-    } else if (
-      error.response.status == 419 &&
-      !error.request.responseURL.endsWith("/auth_user")
-    ) {
-      errorNotification("Error", "Server Error");
-    } else if (
-      error.response.status == 401 &&
-      error.request.responseURL.endsWith("/auth_user")
-    ) {
-      errorNotification("Error", "Authentication Error. Please login.");
-
-      window.localStorage.removeItem("APP_TOKEN");
-
-      router.push("/login");
-    } else {
       return Promise.reject(error);
     }
+
+    const { status, data, request } = error.response;
+
+    if (status === 500) {
+      errorNotification(
+        "Network Error",
+        "Unable to connect to the server. Please check your internet connection.",
+      );
+      router.push({ name: "network-error", params: { type: "2" } });
+    } else if (status === 422) {
+      errorNotification("Validation Error", data.message);
+    } else if (status === 419 && !request.responseURL.endsWith("/auth-user")) {
+      errorNotification("Error", "Server Error");
+    } else if (status === 401 && request.responseURL.endsWith("/auth-user")) {
+      errorNotification("Error", "Authentication Error. Please login again.");
+      window.localStorage.removeItem("APP_TOKEN");
+      router.push("/login");
+    } else {
+      errorNotification(
+        "Error",
+        data.message || "Something went wrong. Please try again.",
+      );
+    }
+
+    return Promise.reject(error);
   },
 );
 

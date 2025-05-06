@@ -1,21 +1,44 @@
 <template>
+  <v-dialog v-model="showConfirm" max-width="400">
+    <v-card>
+      <v-card-title class="text-h6">Confirm Logout</v-card-title>
+      <v-card-text>Do you really want to log out of your account?</v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="grey" @click="showConfirm = false">Cancel</v-btn>
+        <v-btn prepend-icon="mdi-logout" color="red" @click="logout">
+          Logout
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <v-layout>
     <v-navigation-drawer :rail="rail" permanent @click="rail = false">
       <v-list>
-        <v-list-item
-          prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg"
-          title="Sandra Adams"
-          subtitle="sandra_a88@gmailcom"
-          nav
-        >
-          <template v-slot:append>
-            <v-btn
-              icon="mdi-chevron-left"
-              variant="text"
-              @click.stop="rail = !rail"
-            />
-          </template>
-        </v-list-item>
+        <v-skeleton-loader :loading="loading" type="avatar, list-item-two-line">
+          <v-list-item
+            prepend-avatar="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp"
+            :title="`
+              ${authUser?.first_name}
+              ${authUser?.middle_name ? ' ' + authUser?.middle_name : ''}
+              ${authUser?.last_name ? ' ' + authUser?.last_name : ''}
+            `"
+            :subtitle="authUser?.email"
+          >
+            <template #prepend>
+              <v-avatar color="black">
+                <span class="text-h6">{{ authUser?.initials }}</span>
+              </v-avatar>
+            </template>
+            <template #append>
+              <v-btn
+                icon="mdi-chevron-left"
+                variant="text"
+                @click.stop="rail = !rail"
+              />
+            </template>
+          </v-list-item>
+        </v-skeleton-loader>
       </v-list>
 
       <v-divider></v-divider>
@@ -43,6 +66,7 @@
             prepend-icon="mdi-logout"
             title="Logout"
             value="logout"
+            @click="showConfirm = true"
           />
         </v-list>
       </template>
@@ -57,7 +81,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useAuth } from "@/composables/useAuth";
 
 const rail = ref(false);
+
+const showConfirm = ref(false);
+
+const { loading, getUser, authUser, logout } = useAuth();
+
+onMounted(async () => {
+  getUser();
+});
 </script>

@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@babel/types": "^7.21.4",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^18.15.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-typescript": "^11.0.0",
