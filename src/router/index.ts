@@ -12,7 +12,7 @@ const routes = [
     component: () => import("@/components/layouts/BaseContainer.vue"),
     children: [
       {
-        path: "",
+        path: "dashboard",
         name: "dashboard",
         component: () => import("@/views/Modules/Dashboard.vue"),
       },
