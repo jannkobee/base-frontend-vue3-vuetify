@@ -7,6 +7,7 @@
     :form="form"
     :data="data"
     :fields="fields"
+    @permission="openPermissionModal"
     @close="close"
     @execute="execute"
   />
@@ -16,19 +17,24 @@
     :data="items"
     :loading="loading"
     :pagination="pagination"
-    :relations="relations"
     @filter="index"
     @create="create"
     @edit="edit"
     @remove="remove"
+  />
+  <Permission
+    :visible="isPermissionVisible"
+    :data="data"
+    @close="closePermissionModal"
   />
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
 import { useApi } from "@/composables/useApi";
-import { fields } from "@/fields/user";
-import { User } from "@/types/types";
+import { fields } from "@/fields/role";
+import { Role } from "@/types/types";
+import Permission from "@/components/Permission.vue";
 
 const {
   index,
@@ -39,28 +45,21 @@ const {
   store,
   update,
   destroy,
-} = useApi("/users");
+} = useApi("/roles");
 
-const { getOptions } = useApi("/roles");
+const relations = "permissions";
 
-const relations = "role";
-
-const title = ref("User Management");
-const entity = ref("User");
+const title = ref("Role Management");
+const entity = ref("Role");
 const action = ref("");
 const data = ref();
 
 const isFormVisible = ref(false);
+const isPermissionVisible = ref(false);
 
-const form = ref<User>({
-  id: "",
-  role_id: "",
-  first_name: "",
-  middle_name: "",
-  last_name: "",
-  email: "",
-  gender: "",
-  birthday: "",
+const form = ref<Role>({
+  name: "",
+  description: "",
 });
 
 const create = () => {
@@ -76,13 +75,7 @@ const edit = (dataParam: any) => {
 
   action.value = "Edit";
 
-  data.value = {
-    ...dataParam,
-    role: {
-      id: dataParam.role_id,
-      name: dataParam.role?.name || "",
-    },
-  };
+  data.value = dataParam;
 };
 
 const remove = (dataParam: any) => {
@@ -113,22 +106,17 @@ const execute = async (data: any) => {
   }
 };
 
-const addRoleOptions = async () => {
-  const options = await getOptions();
+const openPermissionModal = () => {
+  isPermissionVisible.value = true;
+};
 
-  const roleOptions = options.map((option: any) => ({
-    label: option.name,
-    value: option.id,
-  }));
-
-  const roleField = fields.find((field) => field.key === "role.name");
-
-  if (roleField) {
-    roleField.inputOptions = roleOptions;
-  }
+const closePermissionModal = () => {
+  isPermissionVisible.value = false;
 };
 
 onMounted(async () => {
-  await addRoleOptions();
+  await index({
+    relations,
+  } as any);
 });
 </script>

@@ -42,9 +42,11 @@ export const fields: ColumnConfig[] = [
     nullable: false,
   },
   {
-    title: "Is Admin?",
-    key: "is_admin",
-    inputField: "checkbox",
+    title: "Role",
+    key: "role.name",
+    selectKey: "role_id",
+    inputField: "select",
+    inputOptions: [],
     nullable: false,
   },
   {

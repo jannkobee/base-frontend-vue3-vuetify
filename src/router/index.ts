@@ -22,6 +22,12 @@ const routes = [
         component: () =>
           import("@/views/Admin/UserManagement/UserManagement.vue"),
       },
+      {
+        path: "role-management",
+        name: "role-management",
+        component: () =>
+          import("@/views/Admin/RoleManagement/RoleManagement.vue"),
+      },
     ],
   },
   // {

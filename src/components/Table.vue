@@ -34,13 +34,6 @@
     @update:options="handleTableChange"
   >
     <template #top> </template>
-    <template #item.is_admin="{ item }">
-      <v-checkbox-btn
-        v-model="(item as User).is_admin"
-        style="pointer-events: none"
-        readonly
-      />
-    </template>
     <template #item.action="{ item }">
       <v-container class="action-container">
         <v-btn
@@ -52,7 +45,11 @@
           @click="$emit('edit', item)"
         />
         <v-btn
-          v-if="showDeleteAction"
+          v-if="
+            showDeleteAction &&
+            item.id !== authUser?.role_id &&
+            item.id !== authUser?.id
+          "
           size="small"
           elevation="4"
           density="comfortable"
@@ -65,8 +62,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ColumnConfig, Data, User } from "@/types/types";
-import { ref } from "vue";
+import { ColumnConfig, Data } from "@/types/types";
+import { ref, watch, onMounted } from "vue";
+import { useAuth } from "@/composables/useAuth";
 import debounce from "lodash/debounce";
 
 const props = defineProps({
@@ -74,11 +72,14 @@ const props = defineProps({
   headers: { type: Array as () => ColumnConfig[], default: () => [] },
   data: { type: Array as () => any[], default: () => [] },
   pagination: { type: Object as () => Data, default: () => ({}) },
+  relations: { type: String, default: "" },
   loading: { type: Boolean, default: false },
   showCreateAction: { type: Boolean, default: true },
   showEditAction: { type: Boolean, default: true },
   showDeleteAction: { type: Boolean, default: true },
 });
+
+const { authUser, getUser } = useAuth();
 
 const emit = defineEmits(["filter", "create", "edit", "remove"]);
 
@@ -98,6 +99,22 @@ const handleTableChange = (options: any) => {
 const emitFilter = debounce(() => {
   emit("filter", form.value);
 }, 300);
+
+watch(
+  () => props.relations,
+  (data) => {
+    if (data !== "") {
+      const relations = { relations: data };
+
+      form.value = { ...form.value, ...relations };
+    }
+  },
+  { immediate: true },
+);
+
+onMounted(async () => {
+  await getUser();
+});
 </script>
 
 <style lang="css" scoped>

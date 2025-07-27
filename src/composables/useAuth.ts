@@ -36,7 +36,7 @@ export const useAuth = () => {
 
       const res = await axios.get("/auth/auth-user");
 
-      authUser.value = res.data;
+      authUser.value = res.data.data;
 
       loading.value = false;
 

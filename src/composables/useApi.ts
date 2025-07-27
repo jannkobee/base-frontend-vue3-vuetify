@@ -17,6 +17,7 @@ export const useApi = <T>(endpoint: string) => {
       page?: number;
       itemsPerPage?: number;
       search?: string;
+      relations?: string;
     }
   >({
     current_page: 0,
@@ -36,11 +37,11 @@ export const useApi = <T>(endpoint: string) => {
     pagination.value.total = data.total;
   };
 
-  async function index(payload?: any) {
+  async function index(options?: any) {
     loading.value = true;
 
     try {
-      pagination.value = { ...pagination.value, ...payload };
+      pagination.value = { ...pagination.value, ...options };
 
       const sort = pagination.value.sortBy?.[0] ?? { key: "", order: "" };
 
@@ -49,7 +50,8 @@ export const useApi = <T>(endpoint: string) => {
         limit: pagination.value.itemsPerPage,
         sort_by_column: sort.key,
         sort_by: sort.order,
-        ...payload,
+        relations: pagination.value.relations,
+        ...options,
       };
 
       delete params.sortBy;
@@ -62,9 +64,13 @@ export const useApi = <T>(endpoint: string) => {
 
       const res = await axios.get(endpoint, { params });
 
-      items.value = res.data.data.data;
+      if (options?.all) {
+        items.value = res.data.data;
+      } else {
+        items.value = res.data.data.data;
 
-      assignPagination(res.data.data);
+        assignPagination(res.data.data);
+      }
 
       return res;
     } catch (error) {
@@ -148,9 +154,19 @@ export const useApi = <T>(endpoint: string) => {
   }
 
   async function getOptions() {
-    const res = await axios.get(`${endpoint}/options`);
+    loading.value = true;
 
-    return (options.value = res.data.data);
+    try {
+      const payload = { all: 1 };
+
+      const res = await axios.get(endpoint, { params: payload });
+
+      return (options.value = res.data.data);
+    } catch (error) {
+      throw error;
+    } finally {
+      loading.value = false;
+    }
   }
 
   return {

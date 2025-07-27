@@ -56,6 +56,12 @@
           value="user-management"
           @click="$router.push({ name: 'user-management' })"
         />
+        <v-list-item
+          prepend-icon="mdi-head-cog-outline"
+          title="Role Management"
+          value="role-management"
+          @click="$router.push({ name: 'role-management' })"
+        />
       </v-list>
 
       <v-divider></v-divider>
@@ -91,6 +97,6 @@ const showConfirm = ref(false);
 const { loading, getUser, authUser, logout } = useAuth();
 
 onMounted(async () => {
-  getUser();
+  await getUser();
 });
 </script>

@@ -32,7 +32,21 @@
               :value="option.value"
             />
           </v-radio-group>
+          <v-select
+            v-else-if="field.inputField === 'select'"
+            v-model="form[field.selectKey]"
+            item-title="label"
+            item-value="value"
+            :items="field.inputOptions"
+          />
         </template>
+        <v-btn
+          v-if="props.entity === 'Role' && props.action !== 'Remove'"
+          prepend-icon="mdi-account-lock-outline"
+          @click="emit('permission')"
+        >
+          Permissions
+        </v-btn>
       </template>
 
       <template v-slot:actions>
@@ -40,29 +54,29 @@
         <v-btn
           v-if="props.action === 'Create'"
           prepend-icon="mdi-plus"
-          @click="execute"
           color="success"
           :loading="props.loading"
+          @click="execute"
         >
-          Create
+          Create {{ props.entity }}
         </v-btn>
         <v-btn
           v-if="props.action === 'Edit'"
           prepend-icon="mdi-pencil"
-          @click="execute"
           color="info"
           :loading="props.loading"
+          @click="execute"
         >
-          Edit
+          Save {{ props.entity }}
         </v-btn>
         <v-btn
           v-if="props.action === 'Remove'"
           prepend-icon="mdi-delete"
-          @click="execute"
           color="error"
           :loading="props.loading"
+          @click="execute"
         >
-          Delete
+          Delete {{ props.entity }}
         </v-btn>
       </template>
     </v-card>
@@ -83,7 +97,7 @@ const props = defineProps({
 
 const form = ref();
 
-const emit = defineEmits(["close", "execute"]);
+const emit = defineEmits(["permission", "close", "execute"]);
 
 const execute = async () => {
   emit("execute", form.value);

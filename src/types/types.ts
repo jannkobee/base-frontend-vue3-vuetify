@@ -17,6 +17,7 @@ export type Data = {
 type BaseColumnConfig = {
   title: string;
   key: string;
+  selectKey?: string;
   sortable?: boolean;
   align?: "start" | "end" | "center";
   inputField?: "text" | "radio" | "select" | "checkbox" | "date" | "none";
@@ -37,6 +38,8 @@ type OptionsColumn = BaseColumnConfig & {
 export type ColumnConfig = TextLikeColumn | OptionsColumn;
 
 export type User = {
+  id: string;
+  role_id: string;
   first_name: string;
   middle_name: string;
   last_name: string;
@@ -44,5 +47,16 @@ export type User = {
   email: string;
   gender: string;
   birthday: string;
-  is_admin: boolean;
+};
+
+export type Role = {
+  name: string;
+  description: string;
+};
+
+export type Permission = {
+  id: string;
+  model: string;
+  name: string;
+  slug: string;
 };
