@@ -3,36 +3,66 @@ import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
   {
-    path: "/admin",
-    component: () => import("@/components/layouts/AdminContainer.vue"),
+    path: "/login",
+    name: "login",
+    component: () => import("@/views/Login.vue"),
+  },
+  {
+    path: "/",
+    component: () => import("@/components/layouts/BaseContainer.vue"),
     children: [
       {
         path: "",
-        name: "admin-home",
-        component: () => import("@/views/Admin/Home.vue"),
+        name: "dashboard",
+        component: () => import("@/views/Modules/Dashboard.vue"),
       },
       {
         path: "user-management",
         name: "user-management",
-        component: () => import("@/views/Admin/UserManagement.vue"),
+        component: () =>
+          import("@/views/Modules/UserManagement/UserManagement.vue"),
+      },
+      {
+        path: "role-management",
+        name: "role-management",
+        component: () =>
+          import("@/views/Modules/RoleManagement/RoleManagement.vue"),
       },
     ],
   },
   {
     path: "/page-not-found",
     name: "page-not-found",
-    component: () => import("@/views/NotFound.vue"),
+    component: () => import("@/views/PageNotFound.vue"),
   },
-  // Catch-All Route & Redirect to Page Not Found if Route is not Found
   {
     path: "/:pathMatch(.*)*",
-    redirect: "/page-not-found",
+    name: "not-found",
+    redirect: { name: "page-not-found" },
   },
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = !!window.localStorage.getItem("APP_TOKEN");
+
+  if (isAuthenticated) {
+    if (to.name === "login") {
+      next({ name: "dashboard" });
+    } else {
+      next();
+    }
+  } else {
+    if (to.name !== "login") {
+      next({ name: "login" });
+    } else {
+      next();
+    }
+  }
 });
 
 export default router;
