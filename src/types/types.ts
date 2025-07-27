@@ -47,6 +47,11 @@ export type User = {
   email: string;
   gender: string;
   birthday: string;
+  role?: RoleWithPermissions;
+};
+
+export type RoleWithPermissions = Role & {
+  permissions: Permission[];
 };
 
 export type Role = {

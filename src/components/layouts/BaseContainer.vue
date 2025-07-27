@@ -45,18 +45,20 @@
 
       <v-list density="compact" nav>
         <v-list-item
-          prepend-icon="mdi-home"
-          title="Home"
-          value="admin-home"
-          @click="$router.push({ name: 'admin-home' })"
+          prepend-icon="mdi-view-dashboard"
+          title="Dashboard"
+          value="dashboard"
+          @click="$router.push({ name: 'dashboard' })"
         />
         <v-list-item
+          v-if="checkPermissions('view-users')"
           prepend-icon="mdi-account-cog-outline"
           title="User Management"
           value="user-management"
           @click="$router.push({ name: 'user-management' })"
         />
         <v-list-item
+          v-if="checkPermissions('view-roles')"
           prepend-icon="mdi-head-cog-outline"
           title="Role Management"
           value="role-management"
@@ -96,7 +98,22 @@ const showConfirm = ref(false);
 
 const { loading, getUser, authUser, logout } = useAuth();
 
+const checkPermissions = (permission: string): boolean => {
+  if (!authUser.value?.role?.permissions) {
+    return false;
+  }
+
+  const value = authUser.value.role.permissions.some(
+    (perm: { slug: string }) => perm.slug === permission,
+  );
+
+  console.log("Checking permissions for:", permission, "→", value);
+  return value;
+};
+
 onMounted(async () => {
   await getUser();
+
+  console.log(authUser.value);
 });
 </script>

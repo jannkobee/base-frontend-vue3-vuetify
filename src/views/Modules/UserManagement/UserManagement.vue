@@ -3,6 +3,7 @@
     :loading="loadingActions"
     :entity="entity"
     :action="action"
+    :readOnly="readOnly()"
     :visible="isFormVisible"
     :form="form"
     :data="data"
@@ -11,6 +12,7 @@
     @execute="execute"
   />
   <DataTable
+    :entity="entity"
     :title="title"
     :headers="fields"
     :data="items"
@@ -19,13 +21,14 @@
     :relations="relations"
     @filter="index"
     @create="create"
+    @view="view"
     @edit="edit"
     @remove="remove"
   />
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, readonly } from "vue";
 import { useApi } from "@/composables/useApi";
 import { fields } from "@/fields/user";
 import { User } from "@/types/types";
@@ -63,12 +66,24 @@ const form = ref<User>({
   birthday: "",
 });
 
+const readOnly = () => {
+  return action.value === "View";
+};
+
 const create = () => {
   isFormVisible.value = true;
 
   action.value = "Create";
 
   data.value = { ...form.value };
+};
+
+const view = (dataParam: any) => {
+  isFormVisible.value = true;
+
+  action.value = "View";
+
+  data.value = dataParam;
 };
 
 const edit = (dataParam: any) => {

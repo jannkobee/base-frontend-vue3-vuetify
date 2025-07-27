@@ -2,7 +2,9 @@
   <h1>{{ title }}</h1>
   <v-container class="container">
     <v-btn
-      v-if="showCreateAction"
+      v-if="
+        showCreateAction && checkPermissions(`create-${entity.toLowerCase()}s`)
+      "
       class="button"
       prepend-icon="mdi-plus"
       elevation="4"
@@ -37,7 +39,20 @@
     <template #item.action="{ item }">
       <v-container class="action-container">
         <v-btn
-          v-if="showEditAction"
+          v-if="
+            showViewAction && checkPermissions(`view-${entity.toLowerCase()}s`)
+          "
+          size="small"
+          elevation="4"
+          density="comfortable"
+          icon="mdi-eye"
+          @click="$emit('view', item)"
+        />
+        <v-btn
+          v-if="
+            showEditAction &&
+            checkPermissions(`update-${entity.toLowerCase()}s`)
+          "
           size="small"
           elevation="4"
           density="comfortable"
@@ -47,6 +62,7 @@
         <v-btn
           v-if="
             showDeleteAction &&
+            checkPermissions(`delete-${entity.toLowerCase()}s`) &&
             item.id !== authUser?.role_id &&
             item.id !== authUser?.id
           "
@@ -68,6 +84,7 @@ import { useAuth } from "@/composables/useAuth";
 import debounce from "lodash/debounce";
 
 const props = defineProps({
+  entity: { type: String, default: "" },
   title: { type: String, default: "" },
   headers: { type: Array as () => ColumnConfig[], default: () => [] },
   data: { type: Array as () => any[], default: () => [] },
@@ -75,13 +92,14 @@ const props = defineProps({
   relations: { type: String, default: "" },
   loading: { type: Boolean, default: false },
   showCreateAction: { type: Boolean, default: true },
+  showViewAction: { type: Boolean, default: true },
   showEditAction: { type: Boolean, default: true },
   showDeleteAction: { type: Boolean, default: true },
 });
 
 const { authUser, getUser } = useAuth();
 
-const emit = defineEmits(["filter", "create", "edit", "remove"]);
+const emit = defineEmits(["filter", "create", "view", "edit", "remove"]);
 
 const form = ref({
   page: 1,
@@ -96,9 +114,26 @@ const handleTableChange = (options: any) => {
   emitFilter();
 };
 
+const checkPermissions = (permission: string): boolean => {
+  if (!authUser.value?.role?.permissions) {
+    return false;
+  }
+
+  const value = authUser.value.role.permissions.some(
+    (perm: { slug: string }) => perm.slug === permission,
+  );
+
+  console.log("Checking permissions for:", permission, "→", value);
+  return value;
+};
+
 const emitFilter = debounce(() => {
   emit("filter", form.value);
 }, 300);
+
+onMounted(async () => {
+  await getUser();
+});
 
 watch(
   () => props.relations,
@@ -111,10 +146,6 @@ watch(
   },
   { immediate: true },
 );
-
-onMounted(async () => {
-  await getUser();
-});
 </script>
 
 <style lang="css" scoped>

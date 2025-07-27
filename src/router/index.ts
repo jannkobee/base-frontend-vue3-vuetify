@@ -4,37 +4,32 @@ import { createRouter, createWebHistory } from "vue-router";
 const routes = [
   {
     path: "/login",
-    name: "admin-login",
+    name: "login",
     component: () => import("@/views/Login.vue"),
   },
   {
-    path: "/admin",
-    component: () => import("@/components/layouts/AdminContainer.vue"),
+    path: "/",
+    component: () => import("@/components/layouts/BaseContainer.vue"),
     children: [
       {
         path: "",
-        name: "admin-home",
-        component: () => import("@/views/Admin/Home.vue"),
+        name: "dashboard",
+        component: () => import("@/views/Modules/Dashboard.vue"),
       },
       {
         path: "user-management",
         name: "user-management",
         component: () =>
-          import("@/views/Admin/UserManagement/UserManagement.vue"),
+          import("@/views/Modules/UserManagement/UserManagement.vue"),
       },
       {
         path: "role-management",
         name: "role-management",
         component: () =>
-          import("@/views/Admin/RoleManagement/RoleManagement.vue"),
+          import("@/views/Modules/RoleManagement/RoleManagement.vue"),
       },
     ],
   },
-  // {
-  //   path: "/network-error/:type",
-  //   name: "network-error",
-  //   component: () => import("@/views/NetworkError.vue"),
-  // },
   {
     path: "/page-not-found",
     name: "page-not-found",
@@ -56,14 +51,14 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!window.localStorage.getItem("APP_TOKEN");
 
   if (isAuthenticated) {
-    if (to.name === "admin-login") {
-      next("/admin");
+    if (to.name === "login") {
+      next({ name: "dashboard" });
     } else {
       next();
     }
   } else {
-    if (to.name !== "admin-login") {
-      next({ name: "admin-login" });
+    if (to.name !== "login") {
+      next({ name: "login" });
     } else {
       next();
     }

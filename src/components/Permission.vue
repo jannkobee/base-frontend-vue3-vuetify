@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="props.visible" max-width="1000" persistent>
-    <v-card title="Edit Permissions">
+    <v-card :title="`${props.action} Permissions`">
       <template v-slot:text>
         <v-expansion-panels>
           <v-expansion-panel
@@ -17,6 +17,7 @@
                 :key="permission.id"
                 :label="permission.name"
                 :value="permission.id"
+                :readonly="props.readOnly"
               />
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -26,6 +27,7 @@
       <template v-slot:actions>
         <v-btn @click="$emit('close')">Close</v-btn>
         <v-btn
+          v-if="!props.readOnly"
           prepend-icon="mdi-pencil"
           color="info"
           :loading="loading"
@@ -46,6 +48,8 @@ import type { PropType } from "vue";
 import axios from "@/plugins/axios";
 
 const props = defineProps({
+  action: { type: String, default: "" },
+  readOnly: { type: Boolean, default: false },
   visible: { type: Boolean, default: false },
   data: {
     type: Object as PropType<{

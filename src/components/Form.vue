@@ -11,19 +11,23 @@
             v-if="field.inputField === 'text'"
             :required="field.nullable"
             v-model="form[field.key]"
+            :readonly="props.readOnly"
           />
           <v-text-field
             v-else-if="field.inputField === 'date'"
             type="date"
             v-model="form[field.key]"
+            :readonly="props.readOnly"
           />
           <v-checkbox
             v-else-if="field.inputField === 'checkbox'"
             v-model="form[field.key]"
+            :readonly="props.readOnly"
           />
           <v-radio-group
             v-else-if="field.inputField === 'radio'"
             v-model="form[field.key]"
+            :readonly="props.readOnly"
           >
             <v-radio
               v-for="option in field.inputOptions"
@@ -38,6 +42,7 @@
             item-title="label"
             item-value="value"
             :items="field.inputOptions"
+            :readonly="props.readOnly"
           />
         </template>
         <v-btn
@@ -56,6 +61,7 @@
           prepend-icon="mdi-plus"
           color="success"
           :loading="props.loading"
+          :disabled="props.readOnly"
           @click="execute"
         >
           Create {{ props.entity }}
@@ -65,6 +71,7 @@
           prepend-icon="mdi-pencil"
           color="info"
           :loading="props.loading"
+          :disabled="props.readOnly"
           @click="execute"
         >
           Save {{ props.entity }}
@@ -74,6 +81,7 @@
           prepend-icon="mdi-delete"
           color="error"
           :loading="props.loading"
+          :disabled="props.readOnly"
           @click="execute"
         >
           Delete {{ props.entity }}
@@ -89,6 +97,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   entity: { type: String, default: "" },
   action: { type: String, default: "" },
+  readOnly: { type: Boolean, default: false },
   visible: { type: Boolean, default: false },
   form: { type: Object, default: () => {} },
   data: { type: Object, default: () => {} },

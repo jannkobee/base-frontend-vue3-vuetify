@@ -3,6 +3,7 @@
     :loading="loadingActions"
     :entity="entity"
     :action="action"
+    :readOnly="readOnly()"
     :visible="isFormVisible"
     :form="form"
     :data="data"
@@ -12,6 +13,7 @@
     @execute="execute"
   />
   <DataTable
+    :entity="entity"
     :title="title"
     :headers="fields"
     :data="items"
@@ -19,12 +21,15 @@
     :pagination="pagination"
     @filter="index"
     @create="create"
+    @view="view"
     @edit="edit"
     @remove="remove"
   />
   <Permission
     :visible="isPermissionVisible"
+    :action="action"
     :data="data"
+    :readOnly="readOnly()"
     @close="closePermissionModal"
   />
 </template>
@@ -62,12 +67,24 @@ const form = ref<Role>({
   description: "",
 });
 
+const readOnly = () => {
+  return action.value === "View";
+};
+
 const create = () => {
   isFormVisible.value = true;
 
   action.value = "Create";
 
   data.value = { ...form.value };
+};
+
+const view = (dataParam: any) => {
+  isFormVisible.value = true;
+
+  action.value = "View";
+
+  data.value = dataParam;
 };
 
 const edit = (dataParam: any) => {

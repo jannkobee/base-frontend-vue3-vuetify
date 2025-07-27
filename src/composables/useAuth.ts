@@ -15,7 +15,7 @@ export const useAuth = () => {
 
     window.localStorage.setItem("APP_TOKEN", response.data.token);
 
-    window.location.href = "/admin";
+    window.location.href = "/dashboard";
   }
 
   async function logout() {
